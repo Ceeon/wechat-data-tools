@@ -23,10 +23,29 @@ venv/
 ENV/
 env/
 
+# macOS 系统文件
 .DS_Store
-*.log
+.AppleDouble
+.LSOverride
+._*
 
-# 下载的文章数据
+# 日志文件
+*.log
+logs/
+
+# 数据文件
 articles/
 images/
-*.html
+data/articles/
+wechat2rss-data/
+
+# 报表文件（可选：如果想保留报表就删除这行）
+# reports/
+
+# 配置文件（包含密钥）
+.env
+config/config.yaml
+
+# IDE 配置
+.vscode/
+.idea/
