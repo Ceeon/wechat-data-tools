@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# 虚拟环境
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# 日志（会通过 volume 挂载）
+logs/
+*.log
+
+# 数据（会通过 volume 挂载）
+data/
+reports/
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# 旧的定时任务配置
+*.plist
+*.command
+auto_daily_fetch.sh
+start.sh
+com.wechat.monitor.daily.plist
+
+# 但是保留 entrypoint.sh（Docker 需要）
+!entrypoint.sh
+
+# 临时文件
+*.tmp
+*.bak
+.cache/

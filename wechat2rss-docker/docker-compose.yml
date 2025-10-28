@@ -1,0 +1,24 @@
+version: '3.9'
+
+services:
+  app:
+    image: cooderl/wewe-rss-sqlite:latest
+    ports:
+      - "4000:4000"
+    environment:
+      # 数据库类型
+      - DATABASE_TYPE=sqlite
+      # 服务接口请求授权码(请修改为自己的密码)
+      - AUTH_CODE=wewe2025
+      # 提取全文内容模式
+      - FEED_MODE=fulltext
+      # 定时更新订阅源Cron表达式(每天凌晨2点执行，减少频率避免触发反爬)
+      - CRON_EXPRESSION=0 2 * * *
+      # 服务接口请求限制，每分钟请求次数（降低频率）
+      - MAX_REQUEST_PER_MINUTE=10
+      # 本地访问
+      - SERVER_ORIGIN_URL=http://localhost:4000
+    volumes:
+      # 映射数据库文件存储位置，容器重启后不丢失
+      - ./data:/app/data
+    restart: unless-stopped

@@ -1,0 +1,30 @@
+version: '3.9'
+
+services:
+  wechat2rss:
+    image: ttttmr/wechat2rss:latest
+    container_name: wechat2rss
+    ports:
+      - "4001:8080"
+    environment:
+      # 授权邮箱(全小写) - 必填 - 收到激活码后填写您的邮箱
+      - LIC_EMAIL=287738446@qq.com
+      # 授权激活码 - 必填 - 收到激活码后填写
+      - LIC_CODE=d8cfdf71-11f5-4d91-b7bf-f4868cfb6a37
+      # RSS地址(需包含端口号) - 必填
+      - RSS_HOST=localhost:4001
+      # 是否使用HTTPS - 可选
+      - RSS_HTTPS=false
+      # 其他可选配置
+      # - LOG_LEVEL=info
+    volumes:
+      # 持久化数据存储
+      - ./wechat2rss-data:/wechat2rss
+    restart: unless-stopped
+
+# 使用说明:
+# 1. 修改 LIC_EMAIL 为你的邮箱
+# 2. 修改 LIC_CODE 为你申请的激活码
+# 3. 如果部署在服务器,修改 RSS_HOST 为你的域名或公网IP
+# 4. 运行: docker-compose -f docker-compose-wechat2rss.yml up -d
+# 5. 访问: http://localhost:3000

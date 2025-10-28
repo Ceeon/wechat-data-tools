@@ -1,0 +1,10 @@
+# 公众号数据获取定时任务
+# 每天早上 9:00 执行自动化工作流
+
+# 分 时 日 月 周   命令
+0 9 * * * cd /app && /usr/local/bin/python3 /app/scripts/daily_auto_workflow.py >> /app/logs/cron_$(date +\%Y\%m\%d).log 2>&1
+
+# 每天凌晨 2:00 清理 30 天前的日志文件
+0 2 * * * find /app/logs -name "cron_*.log" -mtime +30 -delete
+
+# 空行（cron 要求文件以换行符结尾）

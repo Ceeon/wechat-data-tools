@@ -1,0 +1,44 @@
+# 配置文件(包含敏感信息)
+config/config.yaml
+config/subscriptions.csv
+
+# 环境变量
+.env
+
+# 数据文件
+data/
+reports/
+logs/
+wechat2rss-data/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# 临时文件
+*.log
+*.tmp
+*.swp
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# 定时任务配置(可能包含个人路径)
+*.plist

@@ -1,0 +1,21 @@
+# 公众号监控系统配置文件
+
+# RSS源配置
+rss:
+  timeout: 30  # RSS请求超时时间(秒)
+
+# AI配置 (可选 - 用于自动批处理)
+ai:
+  api_key: ""  # Claude API Key, 留空则不使用自动AI处理
+  model: "claude-3-5-sonnet-20241022"
+  max_tokens: 1024
+
+# 极致了API配置 (可选 - 用于获取互动数据)
+jizhile:
+  api_key: ""  # 极致了API Key (https://jizhile.com)
+  rate_limit: 0.5  # API调用间隔(秒)
+
+# 存储配置
+storage:
+  articles_dir: "data/articles"  # 文章存储目录
+  reports_dir: "reports"  # 报表存储目录

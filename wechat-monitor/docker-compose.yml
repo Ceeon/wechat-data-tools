@@ -1,0 +1,61 @@
+version: '3.9'
+
+services:
+  # RSS 服务 - 提供微信公众号 RSS 订阅
+  wechat2rss:
+    image: ttttmr/wechat2rss:latest
+    container_name: wechat2rss
+    restart: unless-stopped
+    ports:
+      - "${WECHAT2RSS_PORT:-4001}:8080"
+    environment:
+      - TZ=Asia/Shanghai
+      # 从 .env 文件读取配置
+      - LIC_EMAIL=${WECHAT2RSS_EMAIL}
+      - LIC_CODE=${WECHAT2RSS_LICENSE}
+      - RSS_HOST=${WECHAT2RSS_HOST:-localhost:4001}
+      - RSS_HTTPS=${WECHAT2RSS_HTTPS:-false}
+    volumes:
+      - ./wechat2rss-data:/wechat2rss
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - wechat-net
+
+  # 监控系统 - 采集文章和数据分析
+  wechat-monitor:
+    build: .
+    container_name: wechat-monitor
+    restart: unless-stopped
+    depends_on:
+      - wechat2rss
+    volumes:
+      # 数据持久化 - 挂载到本地目录
+      - ./data:/app/data
+      - ./reports:/app/reports
+      - ./config:/app/config
+      - ./logs:/app/logs
+    environment:
+      - TZ=Asia/Shanghai
+      - PYTHONUNBUFFERED=1  # 实时输出日志
+      # RSS 服务地址（通过 Docker 网络访问）
+      - WECHAT2RSS_URL=http://wechat2rss:8080
+    # 如果需要 Web 访问报表，可以取消注释
+    # ports:
+    #   - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - wechat-net
+
+networks:
+  wechat-net:
+    driver: bridge
