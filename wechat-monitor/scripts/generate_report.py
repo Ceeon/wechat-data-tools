@@ -200,405 +200,74 @@ def generate_html_report(articles, output_file, title="公众号文章报表"):
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{title}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {{
+            theme: {{
+                extend: {{
+                    colors: {{
+                        primary: '#667eea',
+                        secondary: '#764ba2',
+                    }}
+                }}
+            }}
+        }}
+    </script>
     <style>
-        * {{
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        tr.article-group {{
+            border-top: 2px solid #3b82f6 !important;
         }}
 
-        body {{
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 40px 20px;
-        }}
-
-        .container {{
-            max-width: 1600px;
-            margin: 0 auto;
-        }}
-
-        /* 顶部标题区 */
-        .header {{
-            text-align: center;
-            margin-bottom: 40px;
-            color: white;
-        }}
-
-        .header h1 {{
-            font-size: 36px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }}
-
-        .header p {{
-            font-size: 16px;
-            opacity: 0.9;
-        }}
-
-        /* 数据卡片区 */
-        .stats-grid {{
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }}
-
-        .stat-card {{
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-        }}
-
-        .stat-card:hover {{
-            transform: translateY(-5px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-        }}
-
-        .stat-label {{
-            font-size: 14px;
-            color: #64748b;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }}
-
-        .stat-value {{
-            font-size: 32px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }}
-
-        /* 筛选器区域 */
-        .filters {{
-            background: white;
-            padding: 24px;
-            border-radius: 16px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-        }}
-
-        .filters input,
-        .filters select {{
-            padding: 12px 18px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            background: white;
-            color: #1e293b;
-        }}
-
-        .filters input:focus,
-        .filters select:focus {{
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-        }}
-
-        .filters input {{
-            flex: 1;
-            min-width: 280px;
-        }}
-
-        .filters select {{
-            min-width: 160px;
-        }}
-
-        /* 表格容器 */
-        .table-wrapper {{
-            background: white;
-            border-radius: 16px;
-            overflow-x: auto;
-            overflow-y: visible;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }}
-
-        table {{
-            width: 100%;
-            border-collapse: collapse;
+        tr.history-row {{
+            border-left: 2px solid #3b82f6;
         }}
 
         thead {{
-            background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
             position: sticky;
             top: 0;
             z-index: 10;
         }}
-
-        th {{
-            padding: 18px 16px;
-            text-align: left;
-            font-weight: 600;
-            color: white;
-            cursor: pointer;
-            user-select: none;
-            white-space: nowrap;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            transition: all 0.2s ease;
-        }}
-
-        th:hover {{
-            background: rgba(255,255,255,0.15);
-        }}
-
-        th::after {{
-            content: ' ⇅';
-            opacity: 0.6;
-            font-size: 11px;
-            margin-left: 4px;
-        }}
-
-        td {{
-            padding: 16px;
-            border-bottom: 1px solid #f1f5f9;
-            color: #334155;
-            font-size: 14px;
-        }}
-
-        tbody tr {{
-            transition: all 0.2s ease;
-        }}
-
-        tbody tr:nth-child(even) {{
-            background: #f8fafc;
-        }}
-
-        tbody tr:hover {{
-            background: #eff6ff !important;
-            transform: scale(1.002);
-        }}
-
-        /* 多条历史记录样式 */
-        tr.article-group {{
-            border-top: 3px solid #3b82f6 !important;
-        }}
-
-        tr.history-row {{
-            background: #eff6ff !important;
-            border-left: 3px solid #3b82f6;
-        }}
-
-        tr.history-row td {{
-            background: #f0f9ff;
-            font-size: 13px;
-        }}
-
-        tr.history-row:hover {{
-            background: #dbeafe !important;
-        }}
-
-        tr.history-row small {{
-            font-size: 11px;
-            opacity: 0.8;
-        }}
-
-        /* 文章标题样式 */
-        .article-title {{
-            color: #2563eb;
-            text-decoration: none;
-            font-weight: 600;
-            display: block;
-            margin-bottom: 6px;
-            transition: all 0.3s ease;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 400px;
-            font-size: 15px;
-        }}
-
-        .article-title:hover {{
-            color: #7c3aed;
-            text-decoration: underline;
-        }}
-
-        /* 分类标签 */
-        .category {{
-            display: inline-block;
-            padding: 6px 14px;
-            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-            color: white;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-        }}
-
-        /* 公众号名称 */
-        .account {{
-            color: #475569;
-            font-size: 13px;
-            font-weight: 600;
-        }}
-
-        /* 摘要文字 */
-        .summary {{
-            color: #94a3b8;
-            font-size: 12px;
-            line-height: 1.6;
-            max-width: 400px;
-            margin-top: 6px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }}
-
-        /* 数字样式 */
-        .number {{
-            color: #2563eb;
-            font-weight: 700;
-            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
-            font-size: 14px;
-        }}
-
-        .number.high {{
-            color: #10b981;
-            font-weight: 700;
-        }}
-
-        /* 时间样式 */
-        .time {{
-            color: #94a3b8;
-            font-size: 12px;
-            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
-        }}
-
-        /* 空结果提示 */
-        .no-results {{
-            text-align: center;
-            padding: 80px 20px;
-            color: #94a3b8;
-            font-size: 18px;
-            background: white;
-            border-radius: 16px;
-            margin-top: 20px;
-        }}
-
-        /* 响应式设计 */
-        @media (max-width: 768px) {{
-            body {{
-                padding: 20px 10px;
-            }}
-
-            .header h1 {{
-                font-size: 28px;
-            }}
-
-            .stats-grid {{
-                grid-template-columns: 1fr;
-            }}
-
-            .filters {{
-                flex-direction: column;
-            }}
-
-            .filters input,
-            .filters select {{
-                width: 100%;
-            }}
-
-            th, td {{
-                padding: 12px 8px;
-                font-size: 12px;
-            }}
-        }}
-
-        /* 滚动条美化 */
-        ::-webkit-scrollbar {{
-            width: 10px;
-            height: 10px;
-        }}
-
-        ::-webkit-scrollbar-track {{
-            background: #f1f5f9;
-            border-radius: 5px;
-        }}
-
-        ::-webkit-scrollbar-thumb {{
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 5px;
-        }}
-
-        ::-webkit-scrollbar-thumb:hover {{
-            background: linear-gradient(135deg, #5568d3 0%, #63398d 100%);
-        }}
     </style>
 </head>
-<body>
-    <div class="container">
-        <!-- 标题区 -->
-        <div class="header">
-            <h1>📊 公众号文章数据分析</h1>
-            <p>数据驱动内容，洞察价值趋势</p>
-        </div>
-
-        <!-- 数据卡片 -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">📚 总文章数</div>
-                <div class="stat-value">{total_count}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">📁 分类数</div>
-                <div class="stat-value">{category_count}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">👥 公众号数</div>
-                <div class="stat-value">{account_count}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">🕐 更新时间</div>
-                <div class="stat-value" style="font-size: 16px; margin-top: 8px;">{generate_time}</div>
-            </div>
-        </div>
-
+<body class="min-h-screen bg-slate-50 p-6 md:p-10">
+    <div class="max-w-[1600px] mx-auto">
         <!-- 筛选器 -->
-        <div class="filters">
-            <input type="text" id="searchInput" placeholder="🔍 搜索标题、公众号..." onkeyup="filterTable()">
-            <select id="categoryFilter" onchange="filterTable()">
+        <div class="bg-white rounded-lg p-6 border border-slate-200 mb-6 flex flex-wrap gap-4">
+            <input type="text" id="searchInput" placeholder="🔍 搜索标题、公众号..." onkeyup="filterTable()"
+                class="flex-1 min-w-[280px] px-4 py-2.5 border border-slate-300 rounded-md text-sm transition-colors focus:outline-none focus:border-blue-500">
+            <select id="categoryFilter" onchange="filterTable()"
+                class="min-w-[160px] px-4 py-2.5 border border-slate-300 rounded-md text-sm bg-white transition-colors focus:outline-none focus:border-blue-500">
                 <option value="">📁 所有分类</option>
                 {category_options}
             </select>
-            <select id="accountFilter" onchange="filterTable()">
+            <select id="accountFilter" onchange="filterTable()"
+                class="min-w-[160px] px-4 py-2.5 border border-slate-300 rounded-md text-sm bg-white transition-colors focus:outline-none focus:border-blue-500">
                 <option value="">👤 所有公众号</option>
                 {account_options}
             </select>
         </div>
 
         <!-- 表格 -->
-        <div class="table-wrapper">
-            <table id="articleTable">
-            <thead>
+        <div class="bg-white rounded-lg border border-slate-200 overflow-x-auto">
+            <table id="articleTable" class="w-full border-collapse">
+            <thead class="bg-blue-600">
                 <tr>
-                    <th onclick="sortTable(0)" style="width: 50px;">#</th>
-                    <th onclick="sortTable(1)" style="min-width: 350px; max-width: 450px;">标题</th>
-                    <th onclick="sortTable(2)" style="width: 120px;">公众号</th>
-                    <th onclick="sortTable(3)" style="width: 80px;">分类</th>
-                    <th onclick="sortTable(4)" style="width: 140px;">发布时间</th>
-                    <th onclick="sortTable(5)" style="width: 100px;">采集日期</th>
-                    <th onclick="sortTable(6)" style="width: 80px;">阅读</th>
-                    <th onclick="sortTable(7)" style="width: 60px;">点赞</th>
-                    <th onclick="sortTable(8)" style="width: 60px;">在看</th>
-                    <th onclick="sortTable(9)" style="width: 60px;">评论</th>
-                    <th onclick="sortTable(10)" style="width: 60px;">分享</th>
-                    <th onclick="sortTable(11)" style="width: 60px;">收藏</th>
-                    <th onclick="sortTable(12)" style="width: 80px;" title="(点赞+在看)/阅读×1000">互动率‰</th>
-                    <th onclick="sortTable(13)" style="width: 80px;" title="(转发×2+在看)/阅读×1000">传播‰</th>
-                    <th onclick="sortTable(14)" style="width: 90px;" title="(收藏×2+评论)/阅读×1000">价值‰</th>
-                    <th onclick="sortTable(15)" style="width: 70px;" title="(点赞×1+在看×2+评论×3+收藏×4+转发×5)/阅读×100">热度分</th>
+                    <th onclick="sortTable(0)" class="px-4 py-4 text-left text-xs font-semibold text-white cursor-pointer select-none whitespace-nowrap uppercase tracking-wide transition-colors hover:bg-blue-700 w-12">#</th>
+                    <th onclick="sortTable(1)" class="px-4 py-4 text-left text-xs font-semibold text-white cursor-pointer select-none whitespace-nowrap uppercase tracking-wide transition-colors hover:bg-blue-700 min-w-[350px] max-w-[450px]">标题</th>
+                    <th onclick="sortTable(2)" class="px-4 py-4 text-left text-xs font-semibold text-white cursor-pointer select-none whitespace-nowrap uppercase tracking-wide transition-colors hover:bg-blue-700 w-28">公众号</th>
+                    <th onclick="sortTable(3)" class="px-4 py-4 text-left text-xs font-semibold text-white cursor-pointer select-none whitespace-nowrap uppercase tracking-wide transition-colors hover:bg-blue-700 w-20">分类</th>
+                    <th onclick="sortTable(4)" class="px-4 py-4 text-left text-xs font-semibold text-white cursor-pointer select-none whitespace-nowrap uppercase tracking-wide transition-colors hover:bg-blue-700 w-36">发布时间</th>
+                    <th onclick="sortTable(5)" class="px-4 py-4 text-left text-xs font-semibold text-white cursor-pointer select-none whitespace-nowrap uppercase tracking-wide transition-colors hover:bg-blue-700 w-24">采集日期</th>
+                    <th onclick="sortTable(6)" class="px-4 py-4 text-left text-xs font-semibold text-white cursor-pointer select-none whitespace-nowrap uppercase tracking-wide transition-colors hover:bg-blue-700 w-20">阅读</th>
+                    <th onclick="sortTable(7)" class="px-4 py-4 text-left text-xs font-semibold text-white cursor-pointer select-none whitespace-nowrap uppercase tracking-wide transition-colors hover:bg-blue-700 w-16">点赞</th>
+                    <th onclick="sortTable(8)" class="px-4 py-4 text-left text-xs font-semibold text-white cursor-pointer select-none whitespace-nowrap uppercase tracking-wide transition-colors hover:bg-blue-700 w-16">在看</th>
+                    <th onclick="sortTable(9)" class="px-4 py-4 text-left text-xs font-semibold text-white cursor-pointer select-none whitespace-nowrap uppercase tracking-wide transition-colors hover:bg-blue-700 w-16">评论</th>
+                    <th onclick="sortTable(10)" class="px-4 py-4 text-left text-xs font-semibold text-white cursor-pointer select-none whitespace-nowrap uppercase tracking-wide transition-colors hover:bg-blue-700 w-16">分享</th>
+                    <th onclick="sortTable(11)" class="px-4 py-4 text-left text-xs font-semibold text-white cursor-pointer select-none whitespace-nowrap uppercase tracking-wide transition-colors hover:bg-blue-700 w-16">收藏</th>
+                    <th onclick="sortTable(12)" class="px-4 py-4 text-left text-xs font-semibold text-white cursor-pointer select-none whitespace-nowrap uppercase tracking-wide transition-colors hover:bg-blue-700 w-20" title="(点赞+在看)/阅读×1000">互动率‰</th>
+                    <th onclick="sortTable(13)" class="px-4 py-4 text-left text-xs font-semibold text-white cursor-pointer select-none whitespace-nowrap uppercase tracking-wide transition-colors hover:bg-blue-700 w-20" title="(转发×2+在看)/阅读×1000">传播‰</th>
+                    <th onclick="sortTable(14)" class="px-4 py-4 text-left text-xs font-semibold text-white cursor-pointer select-none whitespace-nowrap uppercase tracking-wide transition-colors hover:bg-blue-700 w-24" title="(收藏×2+评论)/阅读×1000">价值‰</th>
+                    <th onclick="sortTable(15)" class="px-4 py-4 text-left text-xs font-semibold text-white cursor-pointer select-none whitespace-nowrap uppercase tracking-wide transition-colors hover:bg-blue-700 w-20" title="(点赞×1+在看×2+评论×3+收藏×4+转发×5)/阅读×100">热度分</th>
                 </tr>
             </thead>
             <tbody>
@@ -607,7 +276,7 @@ def generate_html_report(articles, output_file, title="公众号文章报表"):
         </table>
         </div>
 
-        <div id="noResults" class="no-results" style="display: none;">
+        <div id="noResults" class="hidden text-center py-20 px-5 text-slate-400 text-lg bg-white rounded-2xl mt-5">
             😔 没有找到匹配的文章
         </div>
     </div>
@@ -651,7 +320,12 @@ def generate_html_report(articles, output_file, title="公众号文章报表"):
                 if (show) visibleCount++;
             }}
 
-            document.getElementById('noResults').style.display = visibleCount === 0 ? 'block' : 'none';
+            const noResults = document.getElementById('noResults');
+            if (visibleCount === 0) {{
+                noResults.classList.remove('hidden');
+            }} else {{
+                noResults.classList.add('hidden');
+            }}
         }}
 
         function sortTable(columnIndex) {{
@@ -777,26 +451,26 @@ def generate_html_report(articles, output_file, title="公众号文章报表"):
 
             # 第一行 - 带文章信息
             row = f"""
-                <tr class="article-group">
-                    <td rowspan="{len(stats_history)}">{article_index}</td>
-                    <td rowspan="{len(stats_history)}">
-                        <a href="{article['url']}" target="_blank" class="article-title">{article['title']}</a>
-                        <div class="summary">{article['summary']}...</div>
+                <tr class="article-group hover:bg-blue-50/50 transition-colors">
+                    <td rowspan="{len(stats_history)}" class="px-4 py-3 border-b border-slate-200 text-slate-700 text-sm">{article_index}</td>
+                    <td rowspan="{len(stats_history)}" class="px-4 py-3 border-b border-slate-200">
+                        <a href="{article['url']}" target="_blank" class="block text-blue-600 font-semibold hover:text-blue-700 transition-colors mb-1.5 overflow-hidden text-ellipsis whitespace-nowrap max-w-[400px] text-sm">{article['title']}</a>
+                        <div class="text-slate-400 text-xs leading-relaxed max-w-[400px] mt-1 overflow-hidden text-ellipsis whitespace-nowrap">{article['summary']}...</div>
                     </td>
-                    <td rowspan="{len(stats_history)}" class="account">{article['account']}</td>
-                    <td rowspan="{len(stats_history)}"><span class="category">{article['category']}</span></td>
-                    <td rowspan="{len(stats_history)}" class="time">{publish_time_display}</td>
-                    <td class="time">{fetched_time[:10]}</td>
-                    <td class="number">{read_num:,}</td>
-                    <td class="number">{like_num:,}</td>
-                    <td class="number">{looking_num:,}</td>
-                    <td class="number">{comment_num:,}</td>
-                    <td class="number">{share_num:,}</td>
-                    <td class="number">{collect_num:,}</td>
-                    <td class="number">{engagement_rate:.1f}</td>
-                    <td class="number">{virality_index:.1f}</td>
-                    <td class="number">{content_value:.1f}</td>
-                    <td class="number">{hotness_score:.1f}</td>
+                    <td rowspan="{len(stats_history)}" class="px-4 py-3 border-b border-slate-200 text-slate-700 text-sm font-medium">{article['account']}</td>
+                    <td rowspan="{len(stats_history)}" class="px-4 py-3 border-b border-slate-200"><span class="inline-block px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium">{article['category']}</span></td>
+                    <td rowspan="{len(stats_history)}" class="px-4 py-3 border-b border-slate-200 text-slate-500 text-xs font-mono">{publish_time_display}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-slate-500 text-xs font-mono">{fetched_time[:10]}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{read_num:,}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{like_num:,}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{looking_num:,}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{comment_num:,}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{share_num:,}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{collect_num:,}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{engagement_rate:.1f}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{virality_index:.1f}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{content_value:.1f}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{hotness_score:.1f}</td>
                 </tr>"""
             table_rows.append(row)
 
@@ -851,17 +525,17 @@ def generate_html_report(articles, output_file, title="公众号文章报表"):
 
                 row = f"""
                 <tr class="history-row">
-                    <td class="time">{fetched_time[:10]}</td>
-                    <td class="number">{read_num:,}<br><small>{read_growth}</small></td>
-                    <td class="number">{like_num:,}<br><small>{like_growth}</small></td>
-                    <td class="number">{looking_num:,}<br><small>{looking_growth}</small></td>
-                    <td class="number">{comment_num:,}<br><small>{comment_growth}</small></td>
-                    <td class="number">{share_num:,}<br><small>{share_growth}</small></td>
-                    <td class="number">{collect_num:,}<br><small>{collect_growth}</small></td>
-                    <td class="number">{engagement_rate:.1f}</td>
-                    <td class="number">{virality_index:.1f}</td>
-                    <td class="number">{content_value:.1f}</td>
-                    <td class="number">{hotness_score:.1f}</td>
+                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-slate-500 text-xs font-mono">{fetched_time[:10]}</td>
+                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{read_num:,}<br><small class="text-xs opacity-80">{read_growth}</small></td>
+                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{like_num:,}<br><small class="text-xs opacity-80">{like_growth}</small></td>
+                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{looking_num:,}<br><small class="text-xs opacity-80">{looking_growth}</small></td>
+                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{comment_num:,}<br><small class="text-xs opacity-80">{comment_growth}</small></td>
+                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{share_num:,}<br><small class="text-xs opacity-80">{share_growth}</small></td>
+                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{collect_num:,}<br><small class="text-xs opacity-80">{collect_growth}</small></td>
+                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{engagement_rate:.1f}</td>
+                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{virality_index:.1f}</td>
+                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{content_value:.1f}</td>
+                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{hotness_score:.1f}</td>
                 </tr>"""
                 table_rows.append(row)
 
@@ -905,29 +579,29 @@ def generate_html_report(articles, output_file, title="公众号文章报表"):
             if publish_time_display and len(publish_time_display) > 10:
                 publish_time_display = publish_time_display[:16]
 
-            # 判断数值是否较高
-            engagement_class = "number high" if article.get('engagement_rate', 0) > 50 else "number"
-            virality_class = "number high" if article.get('virality_index', 0) > 300 else "number"
-            content_value_class = "number high" if article.get('content_value', 0) > 80 else "number"
-            hotness_class = "number high" if article.get('hotness_score', 0) > 100 else "number"
+            # 判断数值是否较高，使用绿色高亮（数据高亮功能）
+            engagement_class = "px-4 py-3 border-b border-slate-200 text-emerald-600 font-semibold font-mono text-sm" if article.get('engagement_rate', 0) > 50 else "px-4 py-3 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm"
+            virality_class = "px-4 py-3 border-b border-slate-200 text-emerald-600 font-semibold font-mono text-sm" if article.get('virality_index', 0) > 300 else "px-4 py-3 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm"
+            content_value_class = "px-4 py-3 border-b border-slate-200 text-emerald-600 font-semibold font-mono text-sm" if article.get('content_value', 0) > 80 else "px-4 py-3 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm"
+            hotness_class = "px-4 py-3 border-b border-slate-200 text-emerald-600 font-semibold font-mono text-sm" if article.get('hotness_score', 0) > 100 else "px-4 py-3 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm"
 
             row = f"""
-                <tr>
-                    <td>{article_index}</td>
-                    <td>
-                        <a href="{article['url']}" target="_blank" class="article-title">{article['title']}</a>
-                        <div class="summary">{article['summary']}...</div>
+                <tr class="even:bg-slate-50 hover:bg-blue-50/50 transition-colors">
+                    <td class="px-4 py-3 border-b border-slate-200 text-slate-700 text-sm">{article_index}</td>
+                    <td class="px-4 py-3 border-b border-slate-200">
+                        <a href="{article['url']}" target="_blank" class="block text-blue-600 font-semibold hover:text-blue-700 transition-colors mb-1.5 overflow-hidden text-ellipsis whitespace-nowrap max-w-[400px] text-sm">{article['title']}</a>
+                        <div class="text-slate-400 text-xs leading-relaxed max-w-[400px] mt-1 overflow-hidden text-ellipsis whitespace-nowrap">{article['summary']}...</div>
                     </td>
-                    <td class="account">{article['account']}</td>
-                    <td><span class="category">{article['category']}</span></td>
-                    <td class="time">{publish_time_display}</td>
-                    <td class="time">{fetched_date}</td>
-                    <td class="number">{read_display}</td>
-                    <td class="number">{like_display}</td>
-                    <td class="number">{looking_display}</td>
-                    <td class="number">{comment_display}</td>
-                    <td class="number">{share_display}</td>
-                    <td class="number">{collect_display}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-slate-700 text-sm font-medium">{article['account']}</td>
+                    <td class="px-4 py-3 border-b border-slate-200"><span class="inline-block px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium">{article['category']}</span></td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-slate-500 text-xs font-mono">{publish_time_display}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-slate-500 text-xs font-mono">{fetched_date}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{read_display}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{like_display}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{looking_display}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{comment_display}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{share_display}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{collect_display}</td>
                     <td class="{engagement_class}">{engagement_display}</td>
                     <td class="{virality_class}">{virality_display}</td>
                     <td class="{content_value_class}">{content_value_display}</td>
