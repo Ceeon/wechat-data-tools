@@ -42,3 +42,5 @@ build/
 
 # 定时任务配置(可能包含个人路径)
 *.plist
+# Claude 配置 (如果包含敏感信息，不应提交)
+# .claude/settings.json 可以提交（不含密钥）

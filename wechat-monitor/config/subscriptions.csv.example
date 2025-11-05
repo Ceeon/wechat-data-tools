@@ -1,8 +1,3 @@
 name,biz,rss_url,category
-# Wechat2RSS 订阅配置(本地部署)
-# RSS地址格式: http://localhost:4001/feed/{BID}?k=YOUR_TOKEN
-# 管理界面: http://localhost:4001 (获取RSS_TOKEN)
-# 请在管理界面添加公众号订阅后,将BID填入下方
-# 示例:
-# AI产品自由,3572593767,http://localhost:4001/feed/3572593767?k=YOUR_TOKEN,AI
-# 技术博客,1234567890,http://localhost:4001/feed/1234567890?k=YOUR_TOKEN,Tech
+AI产品自由,3572593767,http://localhost:4001/feed/3572593767?k=YOUR_RSS_TOKEN,AI
+示例公众号,1234567890,http://localhost:4001/feed/1234567890?k=YOUR_RSS_TOKEN,科技

@@ -11,9 +11,13 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list.d/debian.sources
 
 # 安装系统依赖
+# - cron: 定时任务
+# - curl: 健康检查
+# - sqlite3: 数据库命令行工具（可选，用于调试）
 RUN apt-get update && apt-get install -y \
     cron \
     curl \
+    sqlite3 \
     && rm -rf /var/lib/apt/lists/*
 
 # 复制 requirements.txt 并安装 Python 依赖

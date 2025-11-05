@@ -3,525 +3,355 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 [![Python](https://img.shields.io/badge/Python-3.9+-green.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![SQLite](https://img.shields.io/badge/SQLite-3-lightgrey.svg)](https://www.sqlite.org/)
 
-> 🚀 一站式解决方案 - 自动监控微信公众号文章，追踪数据变化，生成可视化报表
+> 🚀 自动监控微信公众号文章，追踪数据变化，生成可视化报表
 
 ## 📖 简介
 
-这是一个完整的微信公众号数据监控系统，集成了 RSS 服务和数据采集分析功能。只需一条命令即可启动所有服务，自动完成：
+完整的微信公众号数据监控系统，基于 Docker 微服务架构，支持：
 
 - 📰 每日自动采集公众号文章
 - 📊 获取文章互动数据（阅读/点赞/在看/评论）
+- 🗄️ SQLite 数据库存储与管理
 - 📈 追踪数据变化趋势
 - 📋 生成 HTML 可视化报表
 
-**适用人群**：内容创作者、运营人员、数据分析师
+**适用场景**：内容运营、数据分析、竞品监控
 
 ---
 
 ## ✨ 核心特性
 
-### 🎯 一键部署
-- **完整集成**：内置 wechat2rss + 数据监控系统
-- **开箱即用**：`docker-compose up -d` 即可运行
-- **自动配置**：服务间自动连接，无需手动配置
+### 🎯 快速部署
+- ✅ Docker Compose 一键启动
+- ✅ 自动初始化数据库
+- ✅ 开箱即用的定时任务
 
-### 📊 数据采集
-- **自动化采集**：每天定时采集昨天发布的文章
-- **智能追踪**：自动获取前 1-2 天文章的互动数据
-- **历史记录**：支持多次采集，追踪数据增长趋势
+### 📊 数据管理
+- ✅ SQLite 数据库（高效查询）
+- ✅ JSON 文件备份（数据安全）
+- ✅ 历史数据追踪（趋势分析）
+- ✅ 命令行查询工具
 
 ### 📈 可视化报表
-- **HTML 报表**：美观的数据展示页面
-- **搜索筛选**：支持按标题、公众号、分类筛选
-- **排序功能**：支持按阅读数、点赞数等排序
-- **趋势分析**：展示数据增长趋势和百分比
-
----
-
-## 🏗️ 系统架构
-
-```
-┌──────────────────────────────────────────┐
-│        Docker Compose 一键部署            │
-└──────────────────────────────────────────┘
-              │
-    ┌─────────┴─────────┐
-    ▼                   ▼
-┌─────────┐      ┌──────────────┐
-│wechat2  │      │   wechat-    │
-│  rss    │◄─────│   monitor    │
-│(RSS服务)│      │  (监控系统)   │
-└─────────┘      └──────────────┘
-   4001端口         定时任务9:00
-
-              ▼
-    ┌──────────────────┐
-    │   本地文件系统    │
-    ├──────────────────┤
-    │ data/articles/   │ 文章数据
-    │ reports/         │ HTML报表
-    │ logs/            │ 日志文件
-    └──────────────────┘
-```
-
----
-
-## ⚡ 快速安装（推荐）
-
-**一条命令完成所有安装**：
-
-```bash
-# 1. 克隆项目
-git clone https://github.com/your-username/wechat-data-tools.git
-cd wechat-data-tools
-
-# 2. 运行自动化安装脚本（一次搞定！）
-bash setup.sh
-# 选择 1) wechat-monitor
-```
-
-**脚本会自动帮你完成**：
-
-### 步骤 1: 智能安装 Docker
-- ✅ 检查 Docker 是否已安装
-- ✅ 如未安装，自动检测你的操作系统
-- ✅ **Mac 系统**：
-  - 自动检测芯片类型（Intel / Apple Silicon）
-  - 下载对应版本的 Docker.dmg 到下载文件夹
-  - 自动打开 .dmg 安装程序
-  - 提供详细安装步骤指引
-- ✅ **Windows 系统**：
-  - 下载 Docker Desktop 安装程序到下载文件夹
-  - 自动打开 .exe 安装程序
-  - 提供详细安装步骤指引
-- ✅ **Linux 系统**：
-  - 提供官方一键安装脚本
-  - 询问是否立即执行自动安装
-
-### 步骤 2: 获取密钥
-- ✅ 自动打开 [Wechat2RSS 官网](https://wechat2rss.xlab.app/deploy/)
-- ✅ 自动打开 [极致了官网](https://dajiala.com/main/interface?actnav=0)
-- ✅ 交互式引导你输入激活码和 API Key
-
-### 步骤 3: 生成配置
-- ✅ 自动生成 `.env` 配置文件
-- ✅ 自动创建 `config.yaml` 和 `subscriptions.csv`
-- ✅ 询问是否编辑订阅源
-
-### 步骤 4: 启动服务
-- ✅ 询问是否立即启动
-- ✅ 自动执行 `docker-compose up -d`
-- ✅ **同时启动 wechat2rss (RSS服务) + wechat-monitor (监控系统)**
-- ✅ 自动打开 RSS 管理页面
-
-**全程只需按提示操作，无需手动输入命令！**
-
----
-
-## 📋 手动安装（可选）
-
-如果你想手动完成准备工作，请按照以下步骤：
-
-## 安装前准备
-
-在开始之前，需要准备以下 3 样东西：
-
-### 1️⃣ 安装 Docker
-
-根据你的操作系统选择：
-
-**macOS**：
-```bash
-# 下载 Docker Desktop for Mac
-# 访问: https://www.docker.com/products/docker-desktop/
-
-# 或使用 Homebrew 安装
-brew install --cask docker
-```
-
-**Windows**：
-```bash
-# 下载 Docker Desktop for Windows
-# 访问: https://www.docker.com/products/docker-desktop/
-```
-
-**Linux (Ubuntu/Debian)**：
-```bash
-# 使用官方脚本一键安装
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-
-# 安装 Docker Compose
-sudo apt-get update
-sudo apt-get install docker-compose-plugin
-```
-
-**验证安装**：
-```bash
-docker --version
-docker-compose --version
-```
-
----
-
-### 2️⃣ 获取 Wechat2RSS 激活码
-
-**步骤**：
-
-1. 访问官网：**https://wechat2rss.xlab.app/deploy/**
-2. 点击 "获取激活码"
-3. 填写邮箱，获取激活码
-4. 保存邮箱和激活码（后面配置会用到）
-
-**快速打开**：
-```bash
-# macOS/Linux
-open https://wechat2rss.xlab.app/deploy/
-
-# Windows
-start https://wechat2rss.xlab.app/deploy/
-```
-
----
-
-### 3️⃣ 获取极致了 API Key
-
-**步骤**：
-
-1. 访问官网：**https://dajiala.com/main/interface?actnav=0**
-2. 注册/登录账号
-3. 充值（建议充值 ¥50，可用一个多月）
-4. 复制 API Key
-
-**快速打开**：
-```bash
-# macOS/Linux
-open https://dajiala.com/main/interface?actnav=0
-
-# Windows
-start https://dajiala.com/main/interface?actnav=0
-```
-
-**💡 提示**：极致了 API 用于获取文章互动数据（阅读数、点赞数等）
+- ✅ HTML 交互式报表
+- ✅ 搜索筛选排序
+- ✅ 数据增长趋势
+- ✅ 多维度指标分析
 
 ---
 
 ## 🚀 快速开始
 
-准备好上面 3 样东西后，开始部署：
+### 前置要求
 
-### 部署步骤
+- Docker & Docker Compose
+- wechat2rss 许可证（[获取方式](https://wechat2rss.xlab.app/)）
+- 极致了 API Key（[获取方式](https://jizhile.com/)）
 
-#### 1️⃣ 克隆项目
+### 1. 克隆项目
 
 ```bash
-git clone https://github.com/your-username/wechat-monitor.git
+git clone <repository-url>
 cd wechat-monitor
 ```
 
-#### 2️⃣ 配置密钥
+### 2. 配置环境变量
+
+创建 `.env` 文件：
 
 ```bash
-# 复制环境变量模板
-cp .env.example .env
-
-# 编辑配置文件（只需填写 3 项）
-vi .env
-```
-
-填写以下 3 项必填配置：
-
-```bash
-# Wechat2RSS 许可证
-WECHAT2RSS_EMAIL=your_email@example.com
+# wechat2rss 配置
+WECHAT2RSS_EMAIL=your-email@example.com
 WECHAT2RSS_LICENSE=your-license-code
+WECHAT2RSS_PORT=4001
 
-# 极致了 API Key
-JIZHILE_API_KEY=your_jizhile_api_key
+# 极致了 API 配置
+JIZHILE_API_KEY=your-api-key
 ```
 
-#### 3️⃣ 配置订阅源
+### 3. 配置订阅列表
 
-```bash
-# 复制配置模板
-cp config/config.yaml.example config/config.yaml
-cp config/subscriptions.csv.example config/subscriptions.csv
-
-# 编辑订阅源（添加要监控的公众号）
-vi config/subscriptions.csv
-```
-
-订阅源格式：
+编辑 `config/subscriptions.csv`：
 
 ```csv
 name,biz,rss_url,category
-AI产品自由,MzU3MjU5Mzc2Nw==,http://localhost:4001/feed/xxx,AI
+AI产品自由,3572593767,http://localhost:4001/feed/3572593767?k=TOKEN,AI
 ```
 
-#### 4️⃣ 启动服务
+### 4. 启动服务
 
 ```bash
-# 启动所有服务
 docker-compose up -d
-
-# 查看启动状态
-docker-compose ps
-
-# 查看日志（可选）
-docker-compose logs -f
 ```
 
-#### 5️⃣ 验证部署
+### 5. 获取 RSS Token
 
 ```bash
-# 访问 RSS 服务
-open http://localhost:4001
-
-# 手动执行一次任务（测试）
-docker-compose exec wechat-monitor python3 /app/scripts/daily_auto_workflow.py
-
-# 查看报表
-open ./reports/all_articles.html
+docker logs wechat2rss 2>&1 | grep "Token:"
 ```
 
-✅ **完成！** 系统将在每天早上 9:00 自动运行。
+将 Token 更新到 `config/subscriptions.csv` 的 RSS URL 中。
+
+### 6. 查看报表
+
+```bash
+# 报表路径
+open reports/all_articles.html
+```
 
 ---
 
-## 📁 项目结构
+## 📊 数据库管理
+
+### SQLite 数据库
+
+系统使用 SQLite 存储所有数据：
+
+```
+data/wechat_monitor.db
+```
+
+**表结构**：
+- `articles` - 文章信息
+- `article_stats` - 互动数据历史
+
+### 查询工具
+
+```bash
+# 查看数据库统计
+python3 scripts/query_db.py --summary
+
+# 查看最新10篇文章
+python3 scripts/query_db.py --latest 10
+
+# 查看Top 5热门文章
+python3 scripts/query_db.py --top 5 --metric read_num
+
+# 搜索文章
+python3 scripts/query_db.py --search "Claude"
+```
+
+### 数据迁移
+
+首次运行或有新数据时：
+
+```bash
+python3 scripts/migrate_to_db.py
+```
+
+容器启动时会自动检测并迁移数据。
+
+**详细文档**: [数据库使用指南](docs/DATABASE.md)
+
+---
+
+## 🔄 自动化流程
+
+### 定时任务
+
+每天早上 9:00 自动执行：
+
+```
+1. 采集昨天的文章 → JSON 文件
+2. 同步文章到数据库
+3. 获取前1-2天的互动数据 → JSON 文件
+4. 同步统计到数据库
+5. 生成 HTML 报表（从数据库读取）
+```
+
+### 手动执行
+
+```bash
+# 完整流程
+docker-compose exec wechat-monitor python3 /app/scripts/daily_auto_workflow.py
+
+# 单独步骤
+docker-compose exec wechat-monitor python3 /app/scripts/daily_fetch.py --mode yesterday
+docker-compose exec wechat-monitor python3 /app/scripts/fetch_recent_days_stats.py
+docker-compose exec wechat-monitor python3 /app/scripts/generate_report.py
+```
+
+---
+
+## 📋 项目结构
 
 ```
 wechat-monitor/
-├── config/                          # 配置文件
-│   ├── config.yaml.example          # API 配置模板
-│   └── subscriptions.csv.example    # 订阅源模板
+├── config/                    # 配置文件
+│   ├── config.yaml           # API 配置
+│   └── subscriptions.csv     # RSS 订阅列表
 │
-├── scripts/                         # 核心脚本
-│   ├── daily_auto_workflow.py       # 完整自动化流程
-│   ├── daily_fetch.py               # 文章采集
-│   ├── fetch_recent_days_stats.py   # 获取前1-2天数据
-│   ├── generate_report.py           # 报表生成
-│   └── utils/
-│       └── jizhile_api.py           # 极致了API封装
+├── data/                      # 数据目录
+│   ├── articles/             # JSON 备份
+│   └── wechat_monitor.db     # SQLite 数据库 ⭐
 │
-├── data/                            # 数据存储（自动生成）
-├── reports/                         # 报表输出（自动生成）
-├── logs/                            # 日志文件（自动生成）
-├── wechat2rss-data/                 # RSS数据（自动生成）
+├── scripts/                   # 核心脚本
+│   ├── daily_auto_workflow.py      # ⭐ 每日自动化
+│   ├── daily_fetch.py              # 文章采集
+│   ├── fetch_recent_days_stats.py  # 数据获取
+│   ├── generate_report.py          # 报表生成
+│   ├── migrate_to_db.py            # 数据迁移
+│   ├── query_db.py                 # 查询工具
+│   ├── init_db.py                  # 数据库初始化
+│   ├── archived/                   # 归档的分析脚本
+│   └── utils/                      # 工具模块
+│       ├── database.py             # 数据库管理类
+│       ├── jizhile_api.py          # API 封装
+│       └── ai_processor.py         # AI 工具
 │
-├── docker-compose.yml               # Docker编排文件
-├── Dockerfile                       # 监控系统镜像
-├── entrypoint.sh                    # 容器启动脚本
-├── crontab                          # 定时任务配置
-├── requirements.txt                 # Python依赖
-└── README.md                        # 项目文档
+├── reports/                   # HTML 报表
+├── logs/                      # 日志文件
+├── docs/                      # 文档
+│   ├── DATABASE.md           # 数据库指南
+│   ├── DOCKER.md             # Docker 指南
+│   └── PROJECT_STRUCTURE.md  # 项目结构
+│
+├── docker-compose.yml        # Docker 编排
+├── Dockerfile                # 镜像构建
+├── entrypoint.sh             # 启动脚本
+├── requirements.txt          # Python 依赖
+└── README.md                 # 本文档
 ```
+
+**详细说明**: [项目结构文档](docs/PROJECT_STRUCTURE.md)
 
 ---
 
-## 🔧 常用命令
+## 🛠️ 常用命令
 
 ### Docker 管理
 
 ```bash
-# 查看容器状态
-docker-compose ps
+# 启动服务
+docker-compose up -d
 
-# 查看实时日志
-docker-compose logs -f
+# 查看日志
+docker-compose logs -f wechat-monitor
 
 # 重启服务
-docker-compose restart
+docker-compose restart wechat-monitor
 
 # 停止服务
-docker-compose stop
-
-# 停止并删除容器
 docker-compose down
-```
 
-### 手动执行任务
-
-```bash
-# 执行完整流程（采集+数据+报表）
-docker-compose exec wechat-monitor python3 /app/scripts/daily_auto_workflow.py
-
-# 只采集文章
-docker-compose exec wechat-monitor python3 /app/scripts/daily_fetch.py --mode yesterday
-
-# 只获取互动数据
-docker-compose exec wechat-monitor python3 /app/scripts/fetch_recent_days_stats.py
-
-# 只生成报表
-docker-compose exec wechat-monitor python3 /app/scripts/generate_report.py
+# 重新构建
+docker-compose up -d --build
 ```
 
 ### 数据管理
 
 ```bash
-# 备份数据
-tar -czf backup_$(date +%Y%m%d).tar.gz data/ reports/
+# 查看数据库统计
+python3 scripts/query_db.py --summary
 
-# 查看数据统计
-docker-compose exec wechat-monitor ls -lh /app/data/articles/ | wc -l
+# 查看热门文章
+python3 scripts/query_db.py --top 10
+
+# 数据迁移
+python3 scripts/migrate_to_db.py
+
+# 生成报表
+python3 scripts/generate_report.py
 ```
 
 ---
 
-## 📊 工作流程
+## 📚 文档
 
-系统每天自动执行以下流程：
-
-```
-┌────────────────────────┐
-│  早上 9:00 定时触发     │
-└────────────────────────┘
-           │
-           ▼
-┌────────────────────────┐
-│ ① 采集昨天的文章        │
-│   - 从 RSS 获取列表     │
-│   - 下载文章内容        │
-│   - 保存为 Markdown     │
-└────────────────────────┘
-           │
-           ▼
-┌────────────────────────┐
-│ ② 获取互动数据          │
-│   - 识别前1-2天文章     │
-│   - 调用极致了 API      │
-│   - 保存最新数据        │
-│   - 更新历史记录        │
-└────────────────────────┘
-           │
-           ▼
-┌────────────────────────┐
-│ ③ 生成数据报表          │
-│   - 汇总所有文章        │
-│   - 生成 HTML 页面      │
-│   - 支持搜索筛选        │
-└────────────────────────┘
-```
+- [数据库使用指南](docs/DATABASE.md) - SQLite 数据库详细说明
+- [Docker 部署指南](docs/DOCKER.md) - 容器化部署完整文档
+- [项目结构说明](docs/PROJECT_STRUCTURE.md) - 目录结构和模块说明
+- [归档脚本说明](scripts/archived/README.md) - 分析工具使用
 
 ---
 
-## 💰 成本说明
+## 🔧 故障排查
 
-### API 费用
+### wechat2rss 服务 unhealthy
 
-- **极致了 API**：约 ¥0.05/篇
-- **Wechat2RSS**：免费（需激活码）
-
-**每日消耗**（假设每天 10 篇新文章，获取前 1-2 天共 20 篇数据）：
-- 合计：¥1.0/天
-- 月成本：约 ¥30/月
-
-### 服务器费用
-
-- **本地运行**：免费
-- **云服务器**：约 ¥50-100/月（根据配置）
-
----
-
-## 🐛 故障排查
-
-### 问题 1: API 余额不足
-
-**现象**：
-```
-⚠️  API返回错误: 金额不足，请充值
-```
-
-**解决**：登录 [极致了](https://jizhile.com/) 充值
-
----
-
-### 问题 2: RSS 服务无法访问
-
-**现象**：文章采集失败，网络超时
-
-**解决**：
 ```bash
-# 检查 wechat2rss 容器状态
-docker-compose ps
+# 查看日志
+docker logs wechat2rss
 
-# 查看 wechat2rss 日志
-docker-compose logs wechat2rss
+# 如果许可证被绑定，访问解绑页面
+# https://wechat2rss.xlab.app/deploy/active.html
 
-# 重启 RSS 服务
+# 重启服务
 docker-compose restart wechat2rss
 ```
 
----
+### 定时任务未执行
 
-### 问题 3: 许可证错误
-
-**现象**：wechat2rss 容器不断重启
-
-**解决**：
-1. 访问 [重新绑定页面](https://wechat2rss.xlab.app/deploy/active.html)
-2. 使用邮箱和激活码重新绑定
-3. 重启容器：`docker-compose restart wechat2rss`
-
----
-
-### 问题 4: 定时任务未执行
-
-**现象**：数据没有自动更新
-
-**解决**：
 ```bash
-# 查看 cron 日志
-docker-compose logs wechat-monitor
-
-# 检查 cron 是否运行
+# 查看 cron 状态
 docker-compose exec wechat-monitor service cron status
+
+# 查看定时任务日志
+docker-compose exec wechat-monitor tail -f /app/logs/cron_*.log
 
 # 手动测试
 docker-compose exec wechat-monitor python3 /app/scripts/daily_auto_workflow.py
 ```
 
----
+### 数据库问题
 
-## 🤝 贡献指南
+```bash
+# 检查数据库文件
+ls -lh data/wechat_monitor.db
 
-欢迎贡献代码、提出问题或建议！
+# 重新迁移数据
+python3 scripts/migrate_to_db.py
 
-1. Fork 本项目
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
-
----
-
-## 📄 开源协议
-
-本项目采用 [MIT 许可证](LICENSE)
+# 查看数据库内容
+sqlite3 data/wechat_monitor.db "SELECT COUNT(*) FROM articles;"
+```
 
 ---
+
+## 🎯 高级功能
+
+### 分析脚本
+
+归档目录提供了额外的分析功能：
+
+```bash
+cd scripts/archived
+
+# 话题分析
+python3 analyze_topics.py
+
+# 互动分析
+python3 analyze_engagement.py
+
+# 时间线分析
+python3 analyze_timeline.py
+```
+
+**详细说明**: [归档脚本文档](scripts/archived/README.md)
+
+---
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+## 📄 许可证
+
+MIT License - 详见 [LICENSE](LICENSE)
 
 ## 🙏 致谢
 
-- [Wechat2RSS](https://github.com/ttttmr/wechat2rss) - 提供 RSS 服务
-- [极致了](https://jizhile.com/) - 提供互动数据 API
-- 所有贡献者
+- [wechat2rss](https://wechat2rss.xlab.app/) - RSS 服务提供
+- [极致了](https://jizhile.com/) - 互动数据 API
 
 ---
 
 ## 📧 联系方式
 
-如有问题或建议，欢迎：
-- 提交 [Issue](https://github.com/your-username/wechat-monitor/issues)
-- 发送邮件
+如有问题或建议，请提交 Issue。
 
 ---
 
-<div align="center">
-
-**⭐ 如果这个项目对你有帮助，请给个 Star！**
-
-Made with ❤️ by [Your Name]
-
-</div>
+**⭐ 如果这个项目对你有帮助，欢迎 Star！**

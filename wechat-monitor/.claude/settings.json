@@ -1,0 +1,6 @@
+{
+  "model": "glm-4-plus",
+  "max_tokens": 8192,
+  "prompt_caching": true,
+  "temperature": 0.7
+}

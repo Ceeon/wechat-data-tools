@@ -6,10 +6,15 @@
 """
 
 import os
+import sys
 from pathlib import Path
 from datetime import datetime
 import json
 
+# 添加项目路径
+sys.path.insert(0, str(Path(__file__).parent))
+
+from utils.database import WechatDatabase
 
 PROJECT_ROOT = Path(__file__).parent.parent
 
@@ -181,6 +186,132 @@ def scan_articles(articles_dir, date_filter=None):
         return article['date'] + article['time']
 
     articles.sort(key=sort_key, reverse=True)
+
+    return articles
+
+
+def load_articles_from_db(db_path, date_filter=None):
+    """
+    从数据库加载文章数据
+
+    Args:
+        db_path: 数据库文件路径
+        date_filter: 日期筛选(格式: 2025-10-18)
+
+    Returns:
+        list: 文章列表
+    """
+    articles = []
+
+    with WechatDatabase(str(db_path)) as db:
+        # 获取所有文章及其最新统计数据
+        cursor = db.conn.cursor()
+
+        query = """
+            SELECT
+                a.article_id,
+                a.title,
+                a.author,
+                a.publish_time,
+                a.url,
+                a.account_name,
+                a.category,
+                a.collected_time,
+                a.content_path
+            FROM articles a
+            ORDER BY a.publish_time DESC
+        """
+
+        cursor.execute(query)
+        article_rows = cursor.fetchall()
+
+        for row in article_rows:
+            article_id = row[0]
+            title = row[1]
+            author = row[2]
+            publish_time = row[3]
+            url = row[4]
+            account_name = row[5]
+            category = row[6]
+            collected_time = row[7]
+            content_path = row[8]
+
+            # 日期筛选（如果需要）
+            if date_filter and publish_time:
+                pub_date = publish_time[:10].replace('-', '')  # 转换为 20251018 格式
+                if pub_date != date_filter:
+                    continue
+
+            # 获取文章的所有统计数据历史
+            stats_list = db.get_article_stats(article_id)
+
+            # 如果没有统计数据，添加空数据
+            if not stats_list:
+                stats_list = [{}]
+
+            # 使用最新的统计数据计算指标
+            latest_stats = stats_list[-1] if stats_list else {}
+
+            # 计算互动指标
+            read_num = latest_stats.get('read_num', 0)
+            like_num = latest_stats.get('like_num', 0)
+            looking_num = latest_stats.get('looking_num', 0)
+            comment_num = latest_stats.get('in_comment_num', 0)
+            share_num = latest_stats.get('share_num', 0)
+            collect_num = latest_stats.get('collect_num', 0)
+
+            # 计算各项指标
+            if read_num > 0:
+                engagement_rate = ((like_num + looking_num) / read_num) * 1000
+                virality_index = ((share_num * 2 + looking_num) / read_num) * 1000
+                content_value = ((collect_num * 2 + comment_num) / read_num) * 1000
+                hotness_score = ((like_num * 1 + looking_num * 2 + comment_num * 3 +
+                                collect_num * 4 + share_num * 5) / read_num) * 100
+            else:
+                engagement_rate = 0
+                virality_index = 0
+                content_value = 0
+                hotness_score = 0
+
+            # 解析日期和时间（用于兼容旧格式）
+            if collected_time:
+                try:
+                    dt = datetime.strptime(collected_time, '%Y-%m-%d %H:%M:%S')
+                    date_str = dt.strftime('%Y%m%d')
+                    time_str = dt.strftime('%H%M%S')
+                except:
+                    date_str = ''
+                    time_str = ''
+            else:
+                date_str = ''
+                time_str = ''
+
+            articles.append({
+                'date': date_str,
+                'time': time_str,
+                'id': article_id,
+                'title': title,
+                'folder': '',  # 数据库模式下不需要
+                'url': url,
+                'account': account_name or '',
+                'category': category or '',
+                'author': author or '',
+                'publish_time': publish_time or '',
+                'collect_time': collected_time or '',
+                'summary': '',  # 数据库模式下暂不提供摘要
+                'read_num': read_num,
+                'like_num': like_num,
+                'looking_num': looking_num,
+                'comment_num': comment_num,
+                'share_num': share_num,
+                'collect_num': collect_num,
+                'engagement_rate': engagement_rate,
+                'virality_index': virality_index,
+                'content_value': content_value,
+                'hotness_score': hotness_score,
+                'has_stats': bool(latest_stats),
+                'stats_history': stats_list
+            })
 
     return articles
 
@@ -454,10 +585,9 @@ def generate_html_report(articles, output_file, title="公众号文章报表"):
                 <tr class="article-group hover:bg-blue-50/50 transition-colors">
                     <td rowspan="{len(stats_history)}" class="px-4 py-3 border-b border-slate-200 text-slate-700 text-sm">{article_index}</td>
                     <td rowspan="{len(stats_history)}" class="px-4 py-3 border-b border-slate-200">
-                        <a href="{article['url']}" target="_blank" class="block text-blue-600 font-semibold hover:text-blue-700 transition-colors mb-1.5 overflow-hidden text-ellipsis whitespace-nowrap max-w-[400px] text-sm">{article['title']}</a>
-                        <div class="text-slate-400 text-xs leading-relaxed max-w-[400px] mt-1 overflow-hidden text-ellipsis whitespace-nowrap">{article['summary']}...</div>
+                        <a href="{article['url']}" target="_blank" class="block text-blue-600 hover:text-blue-700 transition-colors overflow-hidden text-ellipsis whitespace-nowrap max-w-[400px] text-sm">{article['title']}</a>
                     </td>
-                    <td rowspan="{len(stats_history)}" class="px-4 py-3 border-b border-slate-200 text-slate-700 text-sm font-medium">{article['account']}</td>
+                    <td rowspan="{len(stats_history)}" class="px-4 py-3 border-b border-slate-200 text-slate-600 text-xs">{article['account']}</td>
                     <td rowspan="{len(stats_history)}" class="px-4 py-3 border-b border-slate-200"><span class="inline-block px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium">{article['category']}</span></td>
                     <td rowspan="{len(stats_history)}" class="px-4 py-3 border-b border-slate-200 text-slate-500 text-xs font-mono">{publish_time_display}</td>
                     <td class="px-4 py-3 border-b border-slate-200 text-slate-500 text-xs font-mono">{fetched_time[:10]}</td>
@@ -498,13 +628,14 @@ def generate_html_report(articles, output_file, title="公众号文章报表"):
 
                 def calc_growth(curr, prev):
                     if prev == 0:
-                        return "" if curr == 0 else f"<span style='color:#52c41a;'>+{curr}</span>"
+                        return ""
                     diff = curr - prev
                     if diff > 0:
                         pct = (diff / prev) * 100
-                        return f"<span style='color:#52c41a;'>↑+{diff} ({pct:.0f}%)</span>"
+                        return f"<span style='color:#52c41a;'>(+{pct:.0f}%)</span>"
                     elif diff < 0:
-                        return f"<span style='color:#ff4d4f;'>↓{diff}</span>"
+                        pct = abs((diff / prev) * 100)
+                        return f"<span style='color:#ff4d4f;'>(-{pct:.0f}%)</span>"
                     return ""
 
                 read_growth = calc_growth(read_num, prev_read)
@@ -526,12 +657,12 @@ def generate_html_report(articles, output_file, title="公众号文章报表"):
                 row = f"""
                 <tr class="history-row">
                     <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-slate-500 text-xs font-mono">{fetched_time[:10]}</td>
-                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{read_num:,}<br><small class="text-xs opacity-80">{read_growth}</small></td>
-                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{like_num:,}<br><small class="text-xs opacity-80">{like_growth}</small></td>
-                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{looking_num:,}<br><small class="text-xs opacity-80">{looking_growth}</small></td>
-                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{comment_num:,}<br><small class="text-xs opacity-80">{comment_growth}</small></td>
-                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{share_num:,}<br><small class="text-xs opacity-80">{share_growth}</small></td>
-                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{collect_num:,}<br><small class="text-xs opacity-80">{collect_growth}</small></td>
+                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200"><span class="text-blue-600 font-semibold font-mono text-sm">{read_num:,}</span> <small class="text-xs ml-1">{read_growth}</small></td>
+                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200"><span class="text-blue-600 font-semibold font-mono text-sm">{like_num:,}</span> <small class="text-xs ml-1">{like_growth}</small></td>
+                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200"><span class="text-blue-600 font-semibold font-mono text-sm">{looking_num:,}</span> <small class="text-xs ml-1">{looking_growth}</small></td>
+                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200"><span class="text-blue-600 font-semibold font-mono text-sm">{comment_num:,}</span> <small class="text-xs ml-1">{comment_growth}</small></td>
+                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200"><span class="text-blue-600 font-semibold font-mono text-sm">{share_num:,}</span> <small class="text-xs ml-1">{share_growth}</small></td>
+                    <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200"><span class="text-blue-600 font-semibold font-mono text-sm">{collect_num:,}</span> <small class="text-xs ml-1">{collect_growth}</small></td>
                     <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{engagement_rate:.1f}</td>
                     <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{virality_index:.1f}</td>
                     <td class="px-4 py-3 bg-blue-50/40 border-b border-slate-200 text-blue-600 font-semibold font-mono text-sm">{content_value:.1f}</td>
@@ -589,10 +720,9 @@ def generate_html_report(articles, output_file, title="公众号文章报表"):
                 <tr class="even:bg-slate-50 hover:bg-blue-50/50 transition-colors">
                     <td class="px-4 py-3 border-b border-slate-200 text-slate-700 text-sm">{article_index}</td>
                     <td class="px-4 py-3 border-b border-slate-200">
-                        <a href="{article['url']}" target="_blank" class="block text-blue-600 font-semibold hover:text-blue-700 transition-colors mb-1.5 overflow-hidden text-ellipsis whitespace-nowrap max-w-[400px] text-sm">{article['title']}</a>
-                        <div class="text-slate-400 text-xs leading-relaxed max-w-[400px] mt-1 overflow-hidden text-ellipsis whitespace-nowrap">{article['summary']}...</div>
+                        <a href="{article['url']}" target="_blank" class="block text-blue-600 hover:text-blue-700 transition-colors overflow-hidden text-ellipsis whitespace-nowrap max-w-[400px] text-sm">{article['title']}</a>
                     </td>
-                    <td class="px-4 py-3 border-b border-slate-200 text-slate-700 text-sm font-medium">{article['account']}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-slate-600 text-xs">{article['account']}</td>
                     <td class="px-4 py-3 border-b border-slate-200"><span class="inline-block px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium">{article['category']}</span></td>
                     <td class="px-4 py-3 border-b border-slate-200 text-slate-500 text-xs font-mono">{publish_time_display}</td>
                     <td class="px-4 py-3 border-b border-slate-200 text-slate-500 text-xs font-mono">{fetched_date}</td>
@@ -640,15 +770,23 @@ def generate_html_report(articles, output_file, title="公众号文章报表"):
 
 def main():
     """主函数"""
+    # 检查数据库是否存在
+    db_path = PROJECT_ROOT / "data" / "wechat_monitor.db"
     articles_dir = PROJECT_ROOT / "data" / "articles"
 
-    if not articles_dir.exists():
-        print("❌ 文章目录不存在")
+    # 优先使用数据库
+    if db_path.exists():
+        print("📊 从数据库加载文章...")
+        all_articles = load_articles_from_db(db_path)
+        print(f"✅ 从数据库加载了 {len(all_articles)} 篇文章")
+    elif articles_dir.exists():
+        print("📊 从 JSON 文件扫描文章...")
+        all_articles = scan_articles(articles_dir)
+        print(f"✅ 从 JSON 文件扫描了 {len(all_articles)} 篇文章")
+    else:
+        print("❌ 数据库和文章目录都不存在")
+        print("提示: 请先运行数据迁移脚本: python3 scripts/migrate_to_db.py")
         return
-
-    # 扫描所有文章
-    print("📊 正在扫描文章...")
-    all_articles = scan_articles(articles_dir)
 
     # 生成总报表
     reports_dir = PROJECT_ROOT / "reports"

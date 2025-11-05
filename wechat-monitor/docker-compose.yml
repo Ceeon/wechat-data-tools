@@ -1,24 +1,28 @@
 version: '3.9'
 
+# 微信公众号监控系统 - Docker Compose 配置
+# 详细文档: docs/DOCKER.md
+
 services:
-  # RSS 服务 - 提供微信公众号 RSS 订阅
+  # ========================================
+  # RSS 服务 - Wechat2RSS
+  # ========================================
   wechat2rss:
     image: ttttmr/wechat2rss:latest
     container_name: wechat2rss
     restart: unless-stopped
     ports:
-      - "${WECHAT2RSS_PORT:-4001}:8080"
+      - "${WECHAT2RSS_PORT:-4001}:8080"  # 映射到主机 4001 端口
     environment:
       - TZ=Asia/Shanghai
-      # 从 .env 文件读取配置
       - LIC_EMAIL=${WECHAT2RSS_EMAIL}
       - LIC_CODE=${WECHAT2RSS_LICENSE}
       - RSS_HOST=${WECHAT2RSS_HOST:-localhost:4001}
       - RSS_HTTPS=${WECHAT2RSS_HTTPS:-false}
     volumes:
-      - ./wechat2rss-data:/wechat2rss
+      - ./wechat2rss-data:/data  # 数据持久化
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -26,7 +30,9 @@ services:
     networks:
       - wechat-net
 
-  # 监控系统 - 采集文章和数据分析
+  # ========================================
+  # 监控系统 - 采集文章、存储数据、生成报表
+  # ========================================
   wechat-monitor:
     build: .
     container_name: wechat-monitor
@@ -35,14 +41,14 @@ services:
       - wechat2rss
     volumes:
       # 数据持久化 - 挂载到本地目录
-      - ./data:/app/data
-      - ./reports:/app/reports
-      - ./config:/app/config
-      - ./logs:/app/logs
+      - ./data:/app/data          # 文章数据 + SQLite 数据库
+      - ./reports:/app/reports    # HTML 报表
+      - ./config:/app/config      # 配置文件
+      - ./logs:/app/logs          # 日志文件
     environment:
       - TZ=Asia/Shanghai
       - PYTHONUNBUFFERED=1  # 实时输出日志
-      # RSS 服务地址（通过 Docker 网络访问）
+      # RSS 服务地址（通过 Docker 内部网络访问）
       - WECHAT2RSS_URL=http://wechat2rss:8080
     # 如果需要 Web 访问报表，可以取消注释
     # ports:
@@ -56,6 +62,7 @@ services:
     networks:
       - wechat-net
 
+# Docker 内部网络
 networks:
   wechat-net:
     driver: bridge
