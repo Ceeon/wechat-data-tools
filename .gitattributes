@@ -1,0 +1,28 @@
+# Git 换行符配置
+# 确保跨平台（Windows/Mac/Linux）的文件换行符一致性
+
+# 默认行为：自动检测文本文件，归一化为 LF
+* text=auto
+
+# Shell 脚本和配置文件强制使用 LF
+*.sh text eol=lf
+*.py text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+
+# crontab 文件（关键！Linux 容器需要 LF）
+crontab text eol=lf
+entrypoint.sh text eol=lf
+
+# 二进制文件不处理
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.db binary
+*.sqlite binary
+*.sqlite3 binary

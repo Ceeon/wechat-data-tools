@@ -296,6 +296,84 @@ docker-compose exec wechat-monitor python3 /app/scripts/daily_auto_workflow.py
 
 ---
 
+## Windows 开发者注意事项
+
+### 换行符问题（CRLF vs LF）
+
+**问题现象**：Windows 用户构建 Docker 镜像时报错：
+```
+"/etc/cron.d/wechat-monitor":4: bad minute
+errors in crontab file, can't install.
+```
+
+**原因**：
+- Windows Git 默认将文件换行符从 LF (`\n`) 转换为 CRLF (`\r\n`)
+- Linux 容器内的 cron 服务只识别 LF 格式
+- CRLF 会导致 crontab 解析失败
+
+**解决方案**：
+
+项目已通过以下方式确保跨平台兼容：
+
+1. **`.gitattributes` 文件**（推荐，自动生效）
+   - 项目根目录已配置 `.gitattributes`
+   - 强制 `crontab`、`entrypoint.sh` 等文件使用 LF
+   - 克隆仓库后自动应用
+
+2. **Dockerfile 防御性转换**（双重保险）
+   - 构建时自动移除可能的 `\r` 字符
+   - 即使绕过 Git 也能正常工作
+
+**手动修复方法**（如果仍遇到问题）：
+
+```bash
+# 方法 1: 配置 Git 换行符策略
+git config core.autocrlf input
+git rm --cached -r .
+git reset --hard
+
+# 方法 2: 使用 WSL 转换文件
+wsl sed -i 's/\r$//' wechat-monitor/crontab
+wsl sed -i 's/\r$//' wechat-monitor/entrypoint.sh
+
+# 方法 3: 使用编辑器（VS Code）
+# 打开文件 -> 右下角点击 "CRLF" -> 选择 "LF" -> 保存
+```
+
+**验证换行符格式**：
+
+```bash
+# Windows PowerShell
+Get-Content wechat-monitor\crontab -Raw | Select-String "`r`n"
+# 如果有输出 -> CRLF（需要转换）
+# 如果无输出 -> LF（正确）
+
+# WSL/Git Bash
+file wechat-monitor/crontab
+# 期望输出: ASCII text (无 "with CRLF" 字样)
+```
+
+### .env 文件配置
+
+Windows 用户需确保 `.env` 文件存在并配置正确：
+
+```bash
+# 检查 .env 文件
+cat wechat-monitor\.env
+
+# 如果提示变量未设置，创建 .env 文件
+cp wechat-monitor\.env.example wechat-monitor\.env
+# 然后编辑填入真实配置
+```
+
+### Docker Desktop 要求
+
+- 需要安装 **Docker Desktop for Windows**
+- 启用 WSL 2 后端（推荐）
+- 确保 Docker 服务正在运行
+
+---
+
 ## 添加新公众号订阅
 
 ### 方式 1: 通过管理界面

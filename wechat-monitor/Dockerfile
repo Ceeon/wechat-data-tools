@@ -32,7 +32,8 @@ RUN mkdir -p logs data/articles reports config
 
 # 复制 crontab 文件并设置权限
 COPY crontab /etc/cron.d/wechat-monitor
-RUN chmod 0644 /etc/cron.d/wechat-monitor && \
+RUN sed -i 's/\r$//' /etc/cron.d/wechat-monitor && \
+    chmod 0644 /etc/cron.d/wechat-monitor && \
     crontab /etc/cron.d/wechat-monitor
 
 # 复制启动脚本并设置权限
